@@ -38,10 +38,10 @@ export default class SplashScreen extends Phaser.Scene {
     this.load.image('block2', 'images/circle_hollow.png');
     this.load.image('block3', 'images/square.png');
     this.load.image('block4', 'images/square_hollow.png');
-    this.load.image('block5', 'images/triangle_down.png');
-    this.load.image('block6', 'images/triangle_up.png');
-    this.load.image('block7', 'images/triangle_hollow.png');
-    this.load.image('block8', 'images/pentagon.png');
+    this.load.image('block5', 'images/triangle_up.png');
+    this.load.image('block6', 'images/triangle_hollow.png');
+    this.load.image('block7', 'images/diamond.png');
+    this.load.image('block8', 'images/diamond_hollow.png');
     this.load.image('deadBlock', 'images/transparent.png');
     this.load.image('background', 'images/backyard2.png');
   }

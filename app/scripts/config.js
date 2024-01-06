@@ -173,7 +173,7 @@ export const plugins = {
  *  (`scene.sys.game.config`), under the keys `gameTitle`, `gameVersion` and
  *  `gameURL`, respectively.
  */
-export {title, version, url} from '@/../../package.json';
+export { title, version, url } from '@/../../package.json';
 
 /**
  *  Export created game scenes.

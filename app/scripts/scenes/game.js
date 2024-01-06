@@ -10,8 +10,8 @@ export default class Game extends Phaser.Scene {
   constructor() {
     super({ key: 'Game' });
 
-    this.playerInventory = new Array(this.NUM_VARIATIONS).fill(0);
-    this.aiInventory = new Array(this.NUM_VARIATIONS).fill(0);
+    this.playerInventory = { 'block1': 0, 'block2': 0, 'block3': 0, 'block4': 0, 'block5': 0, 'block6': 0, 'block7': 0, 'block8': 0 };
+    this.aiInventory = { 'block1': 0, 'block2': 0, 'block3': 0, 'block4': 0, 'block5': 0, 'block6': 0, 'block7': 0, 'block8': 0 };
   }
 
   /**
@@ -24,17 +24,14 @@ export default class Game extends Phaser.Scene {
   create(/* data */) {
     this.NUM_ROWS = 8;
     this.NUM_COLS = 8;
-    // candy variations
-    this.NUM_VARIATIONS = 6;
+    this.NUM_VARIATIONS = 8;
     this.BLOCK_SIZE = 35;
     this.ANIMATION_TIME = 1000;
 
     // this.background = this.add.sprite(0, 0, 'background');
     // this.background.setOrigin(0);
 
-    this.playerInventoryText = this.add.text(10, 10, '', { font: '16px Arial', fill: '#fff' });
-    this.aiInventoryText = this.add.text(10, 30, '', { font: '16px Arial', fill: '#fff' });
-
+    this.inventoryDisplayGroup = this.add.group();
 
     this.board = new Board(
       this,
@@ -45,6 +42,7 @@ export default class Game extends Phaser.Scene {
     this.blocks = this.add.group();
     this.graphics = this.make.graphics();
     this.drawBoard();
+    this.displayInventories();
   }
 
   drawBoard() {
@@ -59,14 +57,15 @@ export default class Game extends Phaser.Scene {
     for (let i = 0; i < this.NUM_ROWS; i++) {
       for (let j = 0; j < this.NUM_COLS; j++) {
         const x = 35 + j * (this.BLOCK_SIZE + 6);
-        const y = 150 + i * (this.BLOCK_SIZE + 6);
+        const y = 300 + i * (this.BLOCK_SIZE + 6);
 
         this.add.image(x, y, 'cell');
 
         this.createBlock(x, y, {
           asset: 'block' + this.board.grid[i][j],
           row: i,
-          col: j
+          col: j,
+          type: 'block' + this.board.grid[i][j],
         });
       }
     }
@@ -82,12 +81,12 @@ export default class Game extends Phaser.Scene {
       block.reset(x, y, data);
     }
 
-    block.setScale(.75);
-    block.setTint(0xffffff);
+    block.setScale(.85);
 
     this.children.bringToTop(block);
     block.setActive(true);
     block.setVisible(true);
+
     return block;
   }
 
@@ -99,7 +98,7 @@ export default class Game extends Phaser.Scene {
 
   dropBlock(sourceRow, targetRow, col) {
     const block = this.getBlockFromColRow({ row: sourceRow, col: col });
-    const targetY = 150 + targetRow * (this.BLOCK_SIZE + 6);
+    const targetY = 300 + targetRow * (this.BLOCK_SIZE + 6);
 
     block.row = targetRow;
     this.children.bringToTop(block);
@@ -121,9 +120,10 @@ export default class Game extends Phaser.Scene {
     var block = this.createBlock(x, y, {
       asset: 'block' + this.board.grid[targetRow][col],
       row: targetRow,
-      col: col
+      col: col,
+      type: 'block' + this.board.grid[targetRow][col],
     });
-    var targetY = 150 + targetRow * (this.BLOCK_SIZE + 6);
+    var targetY = 300 + targetRow * (this.BLOCK_SIZE + 6);
 
     this.tweens.add({
       targets: block,
@@ -183,10 +183,9 @@ export default class Game extends Phaser.Scene {
 
     //if there is nothing selected
     if (!this.selectedBlock) {
-      //highlight the first block
-      block.setTint(0xff0000); // Set to red
 
       this.selectedBlock = block;
+
     }
     else {
       //second block you are selecting is target block
@@ -208,8 +207,7 @@ export default class Game extends Phaser.Scene {
 
   clearSelection() {
     this.isBoardBlocked = false;
-    this.selectedBlock.setScale(.75);
-    this.selectedBlock.setTint(0xffffff);
+    this.selectedBlock.setScale(.85);
     this.selectedBlock = null;
     this.targetBlock = null;
   }
@@ -236,24 +234,45 @@ export default class Game extends Phaser.Scene {
     this.displayInventories();
   }
 
-  createParticles() {
-    this.particles = this.add.particles('particleImage'); // 'particleImage' is the key for your particle image
+  // createParticles() {
+  //   this.particles = this.add.particles('particleImage'); // 'particleImage' is the key for your particle image
 
-    this.emitter = this.particles.createEmitter({
-      speed: 100,
-      scale: { start: 1, end: 0 },
-      blendMode: 'ADD'
-    });
-  }
+  //   this.emitter = this.particles.createEmitter({
+  //     speed: 100,
+  //     scale: { start: 1, end: 0 },
+  //     blendMode: 'ADD'
+  //   });
+  // }
 
-  triggerParticles(x, y) {
-    this.emitter.setPosition(x, y);
-    this.emitter.explode(20, x, y); // Explode 20 particles at the given position
-  }
-
+  // triggerParticles(x, y) {
+  //   this.emitter.setPosition(x, y);
+  //   this.emitter.explode(20, x, y); // Explode 20 particles at the given position
+  // }
 
   displayInventories() {
-    this.playerInventoryText.setText('Player Inventory: ' + this.playerInventory.join(', '));
-    this.aiInventoryText.setText('AI Inventory: ' + this.aiInventory.join(', '));
+    // Clear previous inventory display
+    if (this.inventoryDisplayGroup) {
+      this.inventoryDisplayGroup.clear(true, true);
+    }
+
+    this.inventoryDisplayGroup = this.add.group();
+
+    let startX = 5; // Starting Y position for the first icon
+    let iconSize = 15; // Icon size
+    let spacing = 5; // Space between each inventory entry
+    let inventoryIndex = 0;
+
+    for (let key in this.playerInventory) {
+      let iconX = startX + inventoryIndex * (iconSize + spacing);
+      let icon = this.add.image(iconX + 5, 240, key).setDisplaySize(iconSize, iconSize);
+      let countText = this.add.text(icon.x, 240 + 20, `${this.playerInventory[key]}`, { font: '14px Arial', fill: '#fff' }).setOrigin(0.5, 0.5);
+
+      // Add the icon and text to the display group
+      this.inventoryDisplayGroup.add(icon);
+      this.inventoryDisplayGroup.add(countText);
+
+      inventoryIndex++;
+    }
   }
+
 }

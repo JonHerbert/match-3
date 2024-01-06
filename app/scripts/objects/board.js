@@ -205,11 +205,9 @@ export default class Board {
     var chainedBlocks = this.findAllChains();
     chainedBlocks.forEach(block => {
       let blockObject = this.scene.getBlockFromColRow(block);
-      if (blockObject) {
-        let blockType = blockObject.type;
-        this.scene.playerInventory[blockType - 1]++; // Assuming blockType starts from 1
+      if (this.scene.playerInventory[blockObject.type] !== undefined) {
+        this.scene.playerInventory[blockObject.type]++;
       }
-
       this.grid[block.row][block.col] = 0;
       blockObject.deactivate();
     });
@@ -270,7 +268,79 @@ export default class Board {
       }
     }
 
+    if (!this.checkForPossibleMatches()) {
+      console.log('No matches possible');
+      this.resetBoard();
+    }
+
     //repopulate the reserve
     this.populateReserveGrid();
+  }
+
+  resetBoard() {
+    let noMatches;
+    do {
+      // Shuffle the grid
+      this.shuffleGrid();
+
+      // Check if there are any possible matches
+      noMatches = !this.checkForPossibleMatches();
+    } while (noMatches); // Continue shuffling if no matches are found
+  }
+
+  checkForPossibleMatches() {
+    for (let row = 0; row < this.rows; row++) {
+      for (let col = 0; col < this.cols; col++) {
+        if (this.canBlockMakeMatch({ row, col })) {
+          return true; // A match is possible
+        }
+      }
+    }
+    return false; // No matches possible
+  }
+
+  canBlockMakeMatch(position) {
+    // Temporary swap each neighbor and check if it forms a chain
+    let directions = [
+      { row: -1, col: 0 }, // Up
+      { row: 1, col: 0 },  // Down
+      { row: 0, col: -1 }, // Left
+      { row: 0, col: 1 }   // Right
+    ];
+
+    for (let i = 0; i < directions.length; i++) {
+      let neighbor = {
+        row: position.row + directions[i].row,
+        col: position.col + directions[i].col
+      };
+
+      if (neighbor.row >= 0 && neighbor.row < this.rows &&
+        neighbor.col >= 0 && neighbor.col < this.cols) {
+        // Swap blocks
+        this.swap(position, neighbor);
+        let isMatch = this.isChained(position) || this.isChained(neighbor);
+        // Swap back
+        this.swap(position, neighbor);
+
+        if (isMatch) {
+          return true; // Found a potential match
+        }
+      }
+    }
+
+    return false; // No matches found for this block
+  }
+
+  shuffleGrid() {
+    for (let row = 0; row < this.rows; row++) {
+      for (let col = 0; col < this.cols; col++) {
+        let randomRow = Math.floor(Math.random() * this.rows);
+        let randomCol = Math.floor(Math.random() * this.cols);
+        // Swap the blocks
+        let temp = this.grid[row][col];
+        this.grid[row][col] = this.grid[randomRow][randomCol];
+        this.grid[randomRow][randomCol] = temp;
+      }
+    }
   }
 }
