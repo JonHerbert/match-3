@@ -202,15 +202,16 @@ export default class Board {
    * clear all the chains
    */
   clearChains() {
-    //gets all blocks that need to be cleared
     var chainedBlocks = this.findAllChains();
-
-    //set them to zero
     chainedBlocks.forEach(block => {
-      this.grid[block.row][block.col] = 0;
+      let blockObject = this.scene.getBlockFromColRow(block);
+      if (blockObject) {
+        let blockType = blockObject.type;
+        this.scene.playerInventory[blockType - 1]++; // Assuming blockType starts from 1
+      }
 
-      //kill the block object
-      this.scene.getBlockFromColRow(block).deactivate();
+      this.grid[block.row][block.col] = 0;
+      blockObject.deactivate();
     });
   }
 

@@ -9,6 +9,9 @@ export default class Game extends Phaser.Scene {
    */
   constructor() {
     super({ key: 'Game' });
+
+    this.playerInventory = new Array(this.NUM_VARIATIONS).fill(0);
+    this.aiInventory = new Array(this.NUM_VARIATIONS).fill(0);
   }
 
   /**
@@ -24,10 +27,14 @@ export default class Game extends Phaser.Scene {
     // candy variations
     this.NUM_VARIATIONS = 6;
     this.BLOCK_SIZE = 35;
-    this.ANIMATION_TIME = 300;
+    this.ANIMATION_TIME = 1000;
 
-    this.background = this.add.sprite(0, 0, 'background');
-    this.background.setOrigin(0);
+    // this.background = this.add.sprite(0, 0, 'background');
+    // this.background.setOrigin(0);
+
+    this.playerInventoryText = this.add.text(10, 10, '', { font: '16px Arial', fill: '#fff' });
+    this.aiInventoryText = this.add.text(10, 30, '', { font: '16px Arial', fill: '#fff' });
+
 
     this.board = new Board(
       this,
@@ -51,7 +58,7 @@ export default class Game extends Phaser.Scene {
 
     for (let i = 0; i < this.NUM_ROWS; i++) {
       for (let j = 0; j < this.NUM_COLS; j++) {
-        const x = 36 + j * (this.BLOCK_SIZE + 6);
+        const x = 35 + j * (this.BLOCK_SIZE + 6);
         const y = 150 + i * (this.BLOCK_SIZE + 6);
 
         this.add.image(x, y, 'cell');
@@ -74,6 +81,9 @@ export default class Game extends Phaser.Scene {
     } else {
       block.reset(x, y, data);
     }
+
+    block.setScale(.75);
+    block.setTint(0xffffff);
 
     this.children.bringToTop(block);
     block.setActive(true);
@@ -98,12 +108,12 @@ export default class Game extends Phaser.Scene {
       targets: block,
       y: targetY,
       duration: this.ANIMATION_TIME,
-      ease: 'Linear'
+      ease: 'Bounce.easeOut',
     });
   }
 
   dropReserveBlock(sourceRow, targetRow, col) {
-    var x = 36 + col * (this.BLOCK_SIZE + 6);
+    var x = 35 + col * (this.BLOCK_SIZE + 6);
     var y =
       -(this.BLOCK_SIZE + 6) * this.board.RESERVE_ROW +
       sourceRow * (this.BLOCK_SIZE + 6);
@@ -119,7 +129,7 @@ export default class Game extends Phaser.Scene {
       targets: block,
       y: targetY,
       duration: this.ANIMATION_TIME,
-      ease: 'Linear'
+      ease: 'Bounce.easeOut',
     });
   }
 
@@ -128,8 +138,8 @@ export default class Game extends Phaser.Scene {
       targets: block1,
       x: block2.x,
       y: block2.y,
-      duration: this.ANIMATION_TIME,
-      ease: 'Linear',
+      duration: this.ANIMATION_TIME / 2,
+      ease: 'Bounce.easeOut',
       onComplete: () => {
         this.children.bringToTop(block1);
 
@@ -156,8 +166,8 @@ export default class Game extends Phaser.Scene {
       targets: block2,
       x: block1.x,
       y: block1.y,
-      duration: this.ANIMATION_TIME,
-      ease: 'Linear',
+      duration: this.ANIMATION_TIME / 2,
+      ease: 'Bounce.easeOut',
       onComplete: () => {
         this.children.bringToTop(block2);
       }
@@ -167,14 +177,14 @@ export default class Game extends Phaser.Scene {
   pickBlock(block) {
 
     //only swap if the UI is not blocked
-    if(this.isBoardBlocked) {
+    if (this.isBoardBlocked) {
       return;
     }
 
     //if there is nothing selected
-    if(!this.selectedBlock) {
+    if (!this.selectedBlock) {
       //highlight the first block
-      block.setScale(1.5);
+      block.setTint(0xff0000); // Set to red
 
       this.selectedBlock = block;
     }
@@ -183,7 +193,7 @@ export default class Game extends Phaser.Scene {
       this.targetBlock = block;
 
       //only adjacent blocks can swap
-      if(this.board.checkAdjacent(this.selectedBlock, this.targetBlock)) {
+      if (this.board.checkAdjacent(this.selectedBlock, this.targetBlock)) {
         //block the UI
         this.isBoardBlocked = true;
 
@@ -198,7 +208,8 @@ export default class Game extends Phaser.Scene {
 
   clearSelection() {
     this.isBoardBlocked = false;
-    this.selectedBlock.setScale(1);
+    this.selectedBlock.setScale(.75);
+    this.selectedBlock.setTint(0xffffff);
     this.selectedBlock = null;
     this.targetBlock = null;
   }
@@ -210,14 +221,39 @@ export default class Game extends Phaser.Scene {
     //after the dropping has ended
     this.time.delayedCall(this.ANIMATION_TIME, () => {
       //see if there are new chains
-      var chains = this.board.findAllChains();
+      this.time.delayedCall(this.ANIMATION_TIME, () => {
+        var chains = this.board.findAllChains();
 
-      if(chains.length > 0) {
-        this.updateBoard();
-      }
-      else {
-        this.clearSelection();
-      }
+        if (chains.length > 0) {
+          this.updateBoard();
+        }
+        else {
+          this.clearSelection();
+        }
+      });
     });
+
+    this.displayInventories();
+  }
+
+  createParticles() {
+    this.particles = this.add.particles('particleImage'); // 'particleImage' is the key for your particle image
+
+    this.emitter = this.particles.createEmitter({
+      speed: 100,
+      scale: { start: 1, end: 0 },
+      blendMode: 'ADD'
+    });
+  }
+
+  triggerParticles(x, y) {
+    this.emitter.setPosition(x, y);
+    this.emitter.explode(20, x, y); // Explode 20 particles at the given position
+  }
+
+
+  displayInventories() {
+    this.playerInventoryText.setText('Player Inventory: ' + this.playerInventory.join(', '));
+    this.aiInventoryText.setText('AI Inventory: ' + this.aiInventory.join(', '));
   }
 }

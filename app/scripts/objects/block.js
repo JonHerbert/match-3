@@ -14,9 +14,10 @@ export default class Block extends Phaser.GameObjects.Sprite {
     this.data = data;
     this.row = data.row;
     this.col = data.col;
+    this.type = data.type;
 
     this.setInteractive();
-    this.on('pointerdown', function() { this.scene.pickBlock(this); }, this);
+    this.on('pointerdown', function () { this.scene.pickBlock(this); }, this);
   }
 
   reset(x, y, data) {
@@ -24,6 +25,7 @@ export default class Block extends Phaser.GameObjects.Sprite {
     this.setTexture(data.asset);
     this.row = data.row;
     this.col = data.col;
+    this.type = data.type;
   }
 
   deactivate() {
@@ -31,7 +33,7 @@ export default class Block extends Phaser.GameObjects.Sprite {
     this.col = null;
     this.row = null;
 
-    this.scene.time.delayedCall(this.scene.ANIMATION_TIME/2, () => {
+    this.scene.time.delayedCall(this.scene.ANIMATION_TIME / 2, () => {
       this.setActive(false);
       this.setVisible(false);
     });

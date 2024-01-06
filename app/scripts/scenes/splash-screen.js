@@ -34,15 +34,15 @@ export default class SplashScreen extends Phaser.Scene {
     this.showProgressBar();
 
     //load game assets
-    this.load.image('block1', 'images/bean_blue.png');
-    this.load.image('block2', 'images/bean_green.png');
-    this.load.image('block3', 'images/bean_orange.png');
-    this.load.image('block4', 'images/bean_pink.png');
-    this.load.image('block5', 'images/bean_purple.png');
-    this.load.image('block6', 'images/bean_yellow.png');
-    this.load.image('block7', 'images/bean_red.png');
-    this.load.image('block8', 'images/bean_white.png');
-    this.load.image('deadBlock', 'images/bean_dead.png');
+    this.load.image('block1', 'images/circle.png');
+    this.load.image('block2', 'images/circle_hollow.png');
+    this.load.image('block3', 'images/square.png');
+    this.load.image('block4', 'images/square_hollow.png');
+    this.load.image('block5', 'images/triangle_down.png');
+    this.load.image('block6', 'images/triangle_up.png');
+    this.load.image('block7', 'images/triangle_hollow.png');
+    this.load.image('block8', 'images/pentagon.png');
+    this.load.image('deadBlock', 'images/transparent.png');
     this.load.image('background', 'images/backyard2.png');
   }
 
@@ -75,7 +75,7 @@ export default class SplashScreen extends Phaser.Scene {
    */
   showProgressBar() {
     //  Get the progress bar filler texture dimensions.
-    const {width: w, height: h} = this.textures.get('progress-bar').get();
+    const { width: w, height: h } = this.textures.get('progress-bar').get();
 
     //  Place the filler over the progress bar of the splash screen.
     const img = this.add.sprite(82, 282, 'progress-bar').setOrigin(0);
