@@ -183,9 +183,8 @@ export default class Game extends Phaser.Scene {
 
     //if there is nothing selected
     if (!this.selectedBlock) {
-
       this.selectedBlock = block;
-
+      console.log(this.selectedBlock);
     }
     else {
       //second block you are selecting is target block

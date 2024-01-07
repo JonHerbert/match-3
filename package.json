@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@babel/polyfill": "^7.0.0",
-    "phaser": "^3.12.0"
+    "phaser": "^3.60.0"
   },
   "private": true
 }

@@ -64,6 +64,13 @@ export const canvasStyle = 'display: block; margin: 0 auto;';
  */
 export const backgroundColor = '#000000';
 
+export const fx = {
+  glow: {
+    distance: 32,
+    quality: 0.1
+  }
+};
+
 /**
  *  Configure physics engines global parameters.
  *
